@@ -43,16 +43,10 @@
 % public functions
 -export([child_spec/1, update/3, worker_name/1]).
 
--record(
-  state,
-  {
-    value :: any(),
-    report_interval :: non_neg_integer(),
-    telemetry_settings :: {[atom(), ...], atom(), map()}
-  }
-).
-
 -include("hackney_telemetry.hrl").
+-include("hackney_telemetry_worker.hrl").
+
+-define(DEFAULT_REPORT_INTERVAL, 5000).
 
 %%------------------------------------------------------------------------------
 %% @doc Generates a worker child spec based on a
@@ -100,7 +94,7 @@ init(Args) ->
   case telemetry_settings(Args) of
     {ok, TelemetrySettings} ->
       State =
-        #state{
+        #worker_state{
           value = 0,
           report_interval = fetch_report_interval(Args),
           telemetry_settings = TelemetrySettings
@@ -136,9 +130,12 @@ handle_call(_Message, _From, State) -> {reply, ok, State}.
 %%-----------------------------------------------------------------------------
 
 handle_cast({update_event, EventValue, TransformFun}, State) ->
-  NewValue = TransformFun(State#state.value, EventValue),
-  UpdatedState = State#state{value = NewValue},
-  if UpdatedState#state.report_interval > 0 -> report(UpdatedState) end,
+  NewValue = TransformFun(State#worker_state.value, EventValue),
+  UpdatedState = State#worker_state{value = NewValue},
+  if
+    UpdatedState#worker_state.report_interval == 0 -> report(UpdatedState);
+    true -> ok
+  end,
   {noreply, UpdatedState}.
 
 %%-----------------------------------------------------------------------------
@@ -171,10 +168,10 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 %% @end
 %%------------------------------------------------------------------------------
 
--spec report(#state{}) -> ok.
+-spec report(#worker_state{}) -> ok.
 report(State) ->
-  {Metric, MeasurementKey, Metadata} = State#state.telemetry_settings,
-  Measurement = #{MeasurementKey => State#state.value},
+  {Metric, MeasurementKey, Metadata} = State#worker_state.telemetry_settings,
+  Measurement = #{MeasurementKey => State#worker_state.value},
   telemetry:execute(Metric, Measurement, Metadata),
   ok.
 
@@ -184,14 +181,15 @@ report(State) ->
 %% @end
 %%------------------------------------------------------------------------------
 
--spec maybe_schedule_report(#state{}) -> ok.
+-spec maybe_schedule_report(#worker_state{}) -> ok.
 maybe_schedule_report(State) ->
-  case State of
-    #{report_interval := ReportInterval} when ReportInterval > 0 ->
+  ReportInterval = State#worker_state.report_interval,
+  if
+    ReportInterval > 0 ->
       erlang:send_after(ReportInterval, self(), report),
       ok;
 
-    _any -> ok
+    true -> ok
   end.
 
 %%------------------------------------------------------------------------------
@@ -199,11 +197,16 @@ maybe_schedule_report(State) ->
 %% @end
 %%------------------------------------------------------------------------------
 
--spec fetch_report_interval(#state{}) -> ok.
+-spec fetch_report_interval(#worker_state{}) -> ok.
 fetch_report_interval(Args) ->
   ValueFromArgs = proplists:get_value(report_interval, Args),
   ValueFromConfig = application:get_env(hackney_telemetry, report_interval),
   if
     ValueFromArgs =/= undefined -> ValueFromArgs;
-    true -> ValueFromConfig
+
+    ValueFromConfig =/= undefined ->
+      {ok, ActualValueFromConfig} = ValueFromConfig,
+      ActualValueFromConfig;
+
+    true -> ?DEFAULT_REPORT_INTERVAL
   end.

@@ -45,13 +45,15 @@ start_worker(Metric) ->
 %%% @end
 %%%=============================================================================
 
--spec stop_worker(hackney_metric()) -> ok.
+-spec stop_worker(hackney_metric()) -> ok | undefined.
 stop_worker(Metric) ->
-  WorkerName = hackney_telemetry_worker:worker_name(Metric),
+  WorkerId = {hackney_telemetry_worker, Metric},
+  {global, WorkerName} = hackney_telemetry_worker:worker_name(Metric),
   case global:whereis_name(WorkerName) of
-    undefined -> ok;
+    undefined -> undefined;
 
-    WorkerPid ->
-      supervisor:terminate_child(WorkerPid),
+    _Pid ->
+      ok = supervisor:terminate_child(?SERVER, WorkerId),
+      ok = supervisor:delete_child(?SERVER, WorkerId),
       ok
   end.
