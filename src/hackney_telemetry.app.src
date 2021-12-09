@@ -1,0 +1,29 @@
+{
+  application,
+  hackney_telemetry,
+  [
+    {description, "An adapter to export hackney metrics to telemetry"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {hackney_telemetry_app, []}},
+    {applications, [kernel, stdlib, telemetry]},
+    {env, [{report_interval, 1000}]},
+    {modules, []},
+    {licenses, ["Apache 2.0"]},
+    {links, [{"Github", "https://github.com/TheRealReal/hackney_telemetry"}]},
+    {
+      files,
+      [
+        "src",
+        "include",
+        "rebar.config",
+        "rebar.lock",
+        "CHANGELOG",
+        "CODE_OF_CONDUCT.md",
+        "README.md",
+        "LICENSE",
+        "NOTICE"
+      ]
+    }
+  ]
+}.
