@@ -6,7 +6,7 @@
 
 %% Setup/Teardown functions
 
-all() -> [creates_workers, telemetry_integration].
+all() -> [creates_workers, telemetry_integration, fixes_value_shift_on_histograms].
 
 init_per_suite(Config) ->
   application:ensure_all_started(hackney_telemetry),
@@ -28,6 +28,7 @@ end_per_testcase(_, Config) ->
   Config.
 
 %% Tests
+%%
 
 creates_workers(_) ->
   Metric = [hackney_pool, fool_pool],
@@ -35,6 +36,26 @@ creates_workers(_) ->
   hackney_telemetry:new(gauge, Metric),
   undefined =/= global:whereis_name({node(), Metric}).
 
+%%
+
+fixes_value_shift_on_histograms(_) ->
+  check_value_shift([hackney_pool, dull_pool, in_use_count], -1, 0),
+  check_value_shift([hackney_pool, dull_pool, free_count], -1, 0),
+  check_value_shift([hackney_pool, dull_pool, anything], 0, 0).
+
+
+check_value_shift([_, _, Key] = Metric, ReportValue, ExpectedValue) ->
+  hackney_telemetry_worker:start_link([{metric, Metric}, {report_interval, 0}]),
+  hackney_telemetry:update_histogram(Metric, ReportValue),
+  receive
+    {telemetry_event, [hackney_pool], Measurement, #{pool := dull_pool}} ->
+      ExpectedValue = maps:get(Key, Measurement),
+      ok
+  after
+    10 -> ct:fail(message_not_received)
+  end.
+
+%%
 
 telemetry_integration(_) ->
   Metric = [hackney_pool, dull_pool, in_use_count],
