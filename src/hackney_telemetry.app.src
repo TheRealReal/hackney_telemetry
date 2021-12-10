@@ -3,7 +3,7 @@
   hackney_telemetry,
   [
     {description, "An adapter to export hackney metrics to telemetry"},
-    {vsn, "0.1.0"},
+    {vsn, "0.1.1"},
     {registered, []},
     {mod, {hackney_telemetry_app, []}},
     {applications, [kernel, stdlib, telemetry]},
@@ -18,7 +18,7 @@
         "include",
         "rebar.config",
         "rebar.lock",
-        "CHANGELOG",
+        "CHANGELOG.md",
         "CODE_OF_CONDUCT.md",
         "README.md",
         "LICENSE",

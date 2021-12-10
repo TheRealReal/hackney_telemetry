@@ -126,9 +126,13 @@ update_histogram(Metric, Fun) when is_function(Fun) ->
 % For these metrics, we fix their value by adding +1.
 %
 % Reference: https://github.com/benoitc/hackney/blob/592a00720cd1c8eb1edb6a6c9c8b8a4709c8b155/src/hackney_pool.erl%L597-L604
-update_histogram([hackney_pool, _, MetricName] = Metric, Value)
-when MetricName == in_use_count, MetricName == free_count ->
-  hackney_telemetry_worker:update(Metric, Value + 1, fun replace/2);
+update_histogram([hackney_pool, _, MetricName] = Metric, Value) ->
+  FixedValue =
+    case lists:member(MetricName, [in_use_count, free_count]) of
+      true -> Value + 1;
+      false -> Value
+    end,
+  hackney_telemetry_worker:update(Metric, FixedValue, fun replace/2);
 
 update_histogram(Metric, Value) -> hackney_telemetry_worker:update(Metric, Value, fun replace/2).
 
