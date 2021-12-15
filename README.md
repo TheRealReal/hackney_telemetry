@@ -9,16 +9,16 @@
 
 The following metrics are exported by this library to telemetry. They will represent the last known value of the metric. They are based on [hackney's metrics](https://github.com/benoitc/hackney#metrics).
 
-|Metric | Tags | Meaning |
-|-|-|-|
-|`hackney.nb_requests`       | - | Current number of requests
-|`hackney.finished_requests` | - | Total number of finished requests
-|`hackney.total_requests`    | - |Total number of requests
-|`hackney_pool.free_count`| pool | Number of free sockets in a connection pool
-|`hackney_pool.in_use_count`| pool | Number of busy sockets in a connection pool
-|`hackney_pool.no_socket`| pool | Count of new connections
-|`hackney_pool.queue_count`| pool | Number of requests waiting for a connection in a pool
-|`hackney_pool.take_rate`| pool | Rate at which a connection is retrieved from the pool
+| Metric                      | Tags | Meaning                                               |
+| --------------------------- | ---- | ----------------------------------------------------- |
+| `hackney.nb_requests`       | -    | Current number of requests                            |
+| `hackney.finished_requests` | -    | Total number of finished requests                     |
+| `hackney.total_requests`    | -    | Total number of requests                              |
+| `hackney_pool.free_count`   | pool | Number of free sockets in a connection pool           |
+| `hackney_pool.in_use_count` | pool | Number of busy sockets in a connection pool           |
+| `hackney_pool.no_socket`    | pool | Count of new connections                              |
+| `hackney_pool.queue_count`  | pool | Number of requests waiting for a connection in a pool |
+| `hackney_pool.take_rate`    | pool | Rate at which a connection is retrieved from the pool |
 
 *Note: metrics for hosts are still not supported*.
 
@@ -58,9 +58,11 @@ end
 ```
 
 ### Configuring Hackney
+
 In your application config you need to set hackney's `mod_metrics`:
 
 **Erlang**
+
 ```erlang
 {hackney, [{mod_metrics, hackney_telemetry}]}
 ```
@@ -74,15 +76,18 @@ config :hackney, mod_metrics: :hackney_telemetry
 ### Options
 
 #### Report interval
+
 By default, workers will report data to telemetry every 1000 milliseconds. You
 can change that by setting the `report_interval` option:
 
 **Erlang**
+
 ```erlang
 {hackney_telemetry, [{report_interval, 2_000}]}
 ```
 
 **Elixir**
+
 ```elixir
 config :hackney_telemetry, report_interval: 2_000
 ```
