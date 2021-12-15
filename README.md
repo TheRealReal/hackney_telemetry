@@ -24,7 +24,7 @@ The following metrics are exported by this library to telemetry. They will repre
 
 ## Installation
 
-Install it from [Hex](https://hex.pm/packages/hackney_telemetry) or [Github](github.com/TheRealReal/hackney_telemetry).
+Install it from [Hex](https://hex.pm/packages/hackney_telemetry) or [Github](https://github.com/TheRealReal/hackney_telemetry).
 
 ## Usage
 
