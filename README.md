@@ -1,5 +1,5 @@
 ![Tests](https://github.com/TheRealReal/hackney_telemetry/actions/workflows/ci.yml/badge.svg)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 # hackney_telemetry
 
