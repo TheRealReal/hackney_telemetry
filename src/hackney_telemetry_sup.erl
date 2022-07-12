@@ -17,14 +17,17 @@
 
 start_link() -> supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
+-define(PER_HOST, [nb_requests, request_time, connect_time, response_time, connect_timeout, connect_error]).
+
 init([]) ->
   SupFlags = #{strategy => one_for_one, intensity => 0, period => 1},
   ChildSpecs =
     [
-      hackney_telemetry_worker:child_spec([{metric, [hackney, nb_requests]}]),
-      hackney_telemetry_worker:child_spec([{metric, [hackney, total_requests]}]),
-      hackney_telemetry_worker:child_spec([{metric, [hackney, finished_requests]}])
-    ],
+      hackney_telemetry_worker:child_spec([{metric, [hackney, Sub]}])
+     || Sub <- [nb_requests, total_requests, finished_requests]]
+        ++ [
+      hackney_telemetry_worker:child_spec([{metric, [hackney_host, Sub]}])
+     || Sub <- ?PER_HOST],
   {ok, {SupFlags, ChildSpecs}}.
 
 %%% @doc Start worker for the given metric under this supervisor.

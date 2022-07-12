@@ -58,6 +58,9 @@ child_spec(Args) ->
 %% @doc Return name of the worker process
 
 -spec worker_name(hackney_metric()) -> {global, {atom(), hackney_metric()}}.
+worker_name([hackney, Host, Key]) when is_list(Host) ->
+    worker_name([hackney_host, Key]);
+
 worker_name(Metric) -> {global, {node(), Metric}}.
 
 %% @doc Update metric
@@ -65,7 +68,7 @@ worker_name(Metric) -> {global, {node(), Metric}}.
 -spec update(hackney_metric(), any(), transform_fun()) -> ok.
 update(Metric, EventValue, TransformFun) ->
   ProcessName = worker_name(Metric),
-  gen_server:cast(ProcessName, {update_event, EventValue, TransformFun}).
+  gen_server:cast(ProcessName, {update_event, Metric, EventValue, TransformFun}).
 
 %% @doc Start server
 
@@ -81,7 +84,7 @@ init(Args) ->
     {ok, TelemetrySettings} ->
       State =
         #worker_state{
-          value = 0,
+          value = #{},
           report_interval = fetch_report_interval(Args),
           telemetry_settings = TelemetrySettings
         },
@@ -97,6 +100,8 @@ telemetry_settings(Args) ->
   case Metric of
     [hackney, MeasurementKey] -> {ok, {[hackney], MeasurementKey, #{}}};
 
+    [hackney_host, MeasurementKey] -> {ok, {[hackney_host], MeasurementKey, #{}}};
+
     [hackney_pool, PoolName, MeasurementKey] ->
       {ok, {[hackney_pool], MeasurementKey, #{pool => PoolName}}};
 
@@ -109,21 +114,29 @@ handle_call(_Message, _From, State) -> {reply, ok, State}.
 
 %% @doc Handle update event
 
-handle_cast({update_event, EventValue, TransformFun}, State) ->
-  NewValue = TransformFun(State#worker_state.value, EventValue),
-  UpdatedState = State#worker_state{value = NewValue},
+handle_cast({update_event, Metric, EventValue, TransformFun}, State) ->
+  MetadataKey = metadata_key(Metric),
+  OldValue = maps:get(MetadataKey, State#worker_state.value, 0),
+  NewValue = TransformFun(OldValue, EventValue),
+
+  UpdatedState = State#worker_state{value = maps:put(MetadataKey, NewValue, State#worker_state.value)},
   if
-    UpdatedState#worker_state.report_interval == 0 -> report(UpdatedState);
-    true -> ok
-  end,
-  {noreply, UpdatedState}.
+    UpdatedState#worker_state.report_interval == 0 ->
+      {noreply, report(UpdatedState)};
+    true ->
+      {noreply, UpdatedState}
+  end.
+
+metadata_key([hackney, Host, _]) when is_list(Host) -> #{host => Host};
+metadata_key([hackney_pool, Pool, _]) -> #{pool => Pool};
+metadata_key(_Metric) -> #{}.
 
 %% @doc Handle report events
 
 handle_info(report, State) ->
-  report(State),
-  maybe_schedule_report(State),
-  {noreply, State}.
+  State1 = report(State),
+  maybe_schedule_report(State1),
+  {noreply, State1}.
 
 %% @doc gen_server terminate callback
 
@@ -138,9 +151,11 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 -spec report(#worker_state{}) -> ok.
 report(State) ->
   {Metric, MeasurementKey, Metadata} = State#worker_state.telemetry_settings,
-  Measurement = #{MeasurementKey => State#worker_state.value},
-  telemetry:execute(Metric, Measurement, Metadata),
-  ok.
+  [begin
+     Measurement = #{MeasurementKey => Value},
+     telemetry:execute(Metric, Measurement, maps:merge(ExtraMetadata, Metadata))
+   end || {ExtraMetadata, Value} <- maps:to_list(State#worker_state.value)],
+  State#worker_state{value = #{}}.
 
 %% @doc Report events to telemetry.
 %%
