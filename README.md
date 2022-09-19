@@ -100,6 +100,20 @@ To build the source code locally you'll need [rebar3](https://github.com/erlang/
 rebar3 compile
 ```
 
+## Test
+
+```console
+rebar3 ct
+```
+
+## Format code
+
+To run the code formatter on OTP 25:
+
+```console
+ERL_FLAGS="-enable-feature all" rebar3 format
+```
+
 ## Code of Conduct
 
 This project  Contributor Covenant version 2.1. Check [CODE_OF_CONDUCT.md](/CODE_OF_CONDUCT.md) file for more information.
