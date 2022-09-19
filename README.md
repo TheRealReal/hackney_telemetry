@@ -154,10 +154,8 @@ rebar3 ex_doc
 
 ## Format code
 
-To run the code formatter on OTP 25:
-
 ```console
-ERL_FLAGS="-enable-feature all" rebar3 format
+rebar3 steamroll
 ```
 
 ## Code of Conduct
