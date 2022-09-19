@@ -105,7 +105,7 @@ config :hackney_telemetry, report_interval: 2_000
 ## Usage
 
 After installing the module, your application will receive Telemetry events.
-You can handle them in your applicaiton, or install a reporting module such
+You can handle them in your application, or install a reporting module such
 as [Telemetry.Metrics](https://hex.pm/packages/telemetry_metrics)
 or [prom_ex](https://hex.pm/packages/prom_ex).
 
