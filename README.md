@@ -3,11 +3,20 @@
 
 # hackney_telemetry
 
-`hackney_telemetry` will automatically compute and translate [hackney](https://github.com/benoitc/hackney) metrics to something that [telemetry](https://github.com/beam-telemetry/telemetry) understands.
+Telemetry adapter for Hackney metrics.
+
+This module is a [metrics handler](https://github.com/benoitc/hackney/blob/master/README.md#metrics)
+for the [Hackney](https://github.com/benoitc/hackney) HTTP client. It receives
+calls from Hackney to update metrics and generates [Telemetry](https://github.com/beam-telemetry/telemetry) events.
+
+Hackney supports storing metrics in [Folsom](https://hex.pm/packages/folsom) or
+[Exometer](https://hex.pm/packages/exometer_core). Unfortunately, these
+libraries libraries do not export data in a way that is useful for Telemetry,
+so we need to transform the metrics data before reporting it.
 
 ## Telemetry metrics
 
-The following metrics are exported by this library to telemetry. They will represent the last known value of the metric. They are based on [hackney's metrics](https://github.com/benoitc/hackney#metrics).
+The following metrics are exported by this library to telemetry.
 
 | Metric                      | Tags | Meaning                                               |
 | --------------------------- | ---- | ----------------------------------------------------- |
@@ -20,21 +29,87 @@ The following metrics are exported by this library to telemetry. They will repre
 | `hackney_pool.queue_count`  | pool | Number of requests waiting for a connection in a pool |
 | `hackney_pool.take_rate`    | pool | Rate at which a connection is retrieved from the pool |
 
-*Note: metrics for hosts are still not supported*.
+This module implements all the callbacks required by `hackney_metrics` but it does
+not support host metrics.
+
+To use it, configure Hackney `mod_metrics` to use this module and make sure
+that the `hackney_telemetry` application starts before your application.
+
+Hackney calls the module specified by `mod_metrics` to report instrumentation
+metrics. This module receives the data from Hackney and passes it to a
+`hackney_telemetry_worker` which keeps the current state of the metric and
+generates Telemetry events.
+
+A worker process has two jobs:
+
+1.  Calculate metric values
+
+    Hackney does not keep the state of its metrics, but instead emits events to
+    the metrics engine, like "increase this counter by 1", "set this gauge to X",
+    "add Y to this histogram". The job of a metric worker is to process these
+    events and keep up-to-date state representing the value of the tracked metric.
+    State updates run in constant time (O(1)), important since a single
+    request generates about nine metric updates.
+
+2.  Send metric values to Telemetry
+
+    If we send the metric value to Telemetry after every update, then
+    telemetry processing may not be able to keep up, and Telemetry will apply
+    backpressure.
+
+    Since the worker maintains the most up-to-date value, we can send the current
+    value periodically. Gauge metrics may be less accurate, but it avoids overload.
 
 ## Installation
 
-Install it from [Hex](https://hex.pm/packages/hackney_telemetry) or [Github](https://github.com/TheRealReal/hackney_telemetry).
+Install it from [Hex](https://hex.pm/packages/hackney_telemetry) or
+[Github](https://github.com/TheRealReal/hackney_telemetry).
 
-## Usage
+## Configuration
 
-### Configuring Telemetry
+Configure set Hackney to send metrics to this module:
 
-You'll likely use `telemetry` together with a reporting library.
+**Erlang**
+
+```erlang
+{hackney, [{mod_metrics, hackney_telemetry}]}
+```
 
 **Elixir**
 
-Use it with [Telemetry.Metrics](https://hex.pm/packages/telemetry_metrics) library.
+```elixir
+config :hackney, mod_metrics: :hackney_telemetry
+```
+
+### Options
+
+#### Report interval
+
+By default, workers will report data to telemetry every 1000 milliseconds.
+If set to 0, events are generated after every update.
+
+You can change that by setting the `report_interval` option:
+
+**Erlang**
+
+```erlang
+{hackney_telemetry, [{report_interval, 2000}]}
+```
+
+**Elixir**
+
+```elixir
+config :hackney_telemetry, report_interval: 2_000
+```
+
+## Usage
+
+After installing the module, your application will receive Telemetry events.
+You can handle them in your applicaiton, or install a reporting module such
+as [Telemetry.Metrics](https://hex.pm/packages/telemetry_metrics)
+or [prom_ex](https://hex.pm/packages/prom_ex).
+
+## Elixir
 
 ```elixir
 defmodule YourApplcation.Telemetry do
@@ -55,41 +130,6 @@ defmodule YourApplcation.Telemetry do
   ]
   end
 end
-```
-
-### Configuring Hackney
-
-In your application config you need to set hackney's `mod_metrics`:
-
-**Erlang**
-
-```erlang
-{hackney, [{mod_metrics, hackney_telemetry}]}
-```
-
-**Elixir**
-
-```elixir
-config :hackney, mod_metrics: :hackney_telemetry
-```
-
-### Options
-
-#### Report interval
-
-By default, workers will report data to telemetry every 1000 milliseconds. You
-can change that by setting the `report_interval` option:
-
-**Erlang**
-
-```erlang
-{hackney_telemetry, [{report_interval, 2_000}]}
-```
-
-**Elixir**
-
-```elixir
-config :hackney_telemetry, report_interval: 2_000
 ```
 
 ## Building
