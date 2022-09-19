@@ -50,7 +50,7 @@
 
 %% @doc Generate worker child spec for a supervisor.
 
--spec child_spec(hackney_metric()) -> map().
+-spec child_spec([{metric, hackney_metric()}]) -> supervisor:child_spec().
 child_spec(Args) ->
   Metric = proplists:get_value(metric, Args),
   #{id => {?MODULE, Metric}, start => {?MODULE, start_link, [Args]}}.
@@ -69,6 +69,7 @@ update(Metric, EventValue, TransformFun) ->
 
 %% @doc Start server
 
+-spec start_link(keywords()) -> gen_server:start_ret().
 start_link(Args) ->
   Metric = proplists:get_value(metric, Args),
   gen_server:start_link(worker_name(Metric), ?MODULE, Args, []).
@@ -159,7 +160,7 @@ maybe_schedule_report(State) ->
 
 %% @doc Fetch interval on which workers report metrics to telemetry.
 
--spec fetch_report_interval(#worker_state{}) -> ok.
+-spec fetch_report_interval(keywords()) -> non_neg_integer().
 fetch_report_interval(Args) ->
   ValueFromArgs = proplists:get_value(report_interval, Args),
   ValueFromConfig = application:get_env(hackney_telemetry, report_interval),
