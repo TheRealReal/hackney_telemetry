@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update docs
 
-## 0.1.1
+## 0.1.1 - 2021-12-10
 
 ### Changed
 Minor update.
@@ -16,7 +16,7 @@ Minor update.
 ### Fixed
 - Fix histogram values shift for `in_use_count` and `free_count metrics`
 
-## 0.1.0
+## 0.1.0 - 2021-12-08
 
 ## Added
 - First version!
