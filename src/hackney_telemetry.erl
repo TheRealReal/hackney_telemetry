@@ -33,19 +33,8 @@
 
 -module(hackney_telemetry).
 
--export(
-  [
-    new/2,
-    delete/1,
-    increment_counter/1,
-    increment_counter/2,
-    decrement_counter/1,
-    decrement_counter/2,
-    update_histogram/2,
-    update_meter/2,
-    update_gauge/2
-  ]
-).
+-export([new/2, delete/1, increment_counter/1, increment_counter/2, decrement_counter/1,
+         decrement_counter/2, update_histogram/2, update_meter/2, update_gauge/2]).
 
 -include("hackney_telemetry.hrl").
 
@@ -59,40 +48,43 @@
 %%
 %% @end
 -spec new(metric_type(), hackney_metric()) -> ok.
-new(_Type, [hackney, _key]) -> ok;
-
+new(_Type, [hackney, _key]) ->
+    ok;
 new(_Type, [hackney_pool, PoolName, _] = Metric) when is_atom(PoolName) ->
-  hackney_telemetry_sup:start_worker(Metric);
-
-new(_Type, _Metric) -> ok.
+    hackney_telemetry_sup:start_worker(Metric);
+new(_Type, _Metric) ->
+    ok.
 
 %% @doc Delete metric worker.
 -spec delete(hackney_metric()) -> ok.
-delete(Metric) -> hackney_telemetry_sup:stop_worker(Metric).
+delete(Metric) ->
+    hackney_telemetry_sup:stop_worker(Metric).
 
 %% @doc Increment counter metric by 1.
 -spec increment_counter(hackney_metric()) -> ok.
-increment_counter(Metric) -> increment_counter(Metric, 1).
+increment_counter(Metric) ->
+    increment_counter(Metric, 1).
 
 %% @doc Increment counter metric by the given value.
 -spec increment_counter(hackney_metric(), non_neg_integer()) -> ok.
 increment_counter(Metric, Value) ->
-  hackney_telemetry_worker:update(Metric, Value, fun sum/2),
-  ok.
+    hackney_telemetry_worker:update(Metric, Value, fun sum/2),
+    ok.
 
 %% @doc Decrement counter metric by 1.
 -spec decrement_counter(hackney_metric()) -> ok.
-decrement_counter(Metric) -> decrement_counter(Metric, 1).
+decrement_counter(Metric) ->
+    decrement_counter(Metric, 1).
 
 %% @doc Decrement counter metric by the given value.
 -spec decrement_counter(hackney_metric(), non_neg_integer()) -> ok.
-decrement_counter(Metric, Value) -> hackney_telemetry_worker:update(Metric, Value * -1, fun sum/2).
+decrement_counter(Metric, Value) ->
+    hackney_telemetry_worker:update(Metric, Value * -1, fun sum/2).
 
 %% @doc Update histogram metric.
 -spec update_histogram(hackney_metric(), any()) -> ok.
 update_histogram(Metric, Fun) when is_function(Fun) ->
-  hackney_telemetry_worker:update(Metric, Fun, fun eval_and_replace/2);
-
+    hackney_telemetry_worker:update(Metric, Fun, fun eval_and_replace/2);
 % In Hackney, the following metrics have their value off by -1:
 % - [hackney_pool, <pool_name>, free_count]
 % - [hackney_pool, <pool_name>, in_use_count]
@@ -101,21 +93,24 @@ update_histogram(Metric, Fun) when is_function(Fun) ->
 %
 % Reference: https://github.com/benoitc/hackney/blob/592a00720cd1c8eb1edb6a6c9c8b8a4709c8b155/src/hackney_pool.erl#L597-L604
 update_histogram([hackney_pool, _, MetricName] = Metric, Value) ->
-  FixedValue =
-    case lists:member(MetricName, [in_use_count, free_count]) of
-      true -> Value + 1;
-      false -> Value
-    end,
-  hackney_telemetry_worker:update(Metric, FixedValue, fun replace/2);
-
-update_histogram(Metric, Value) -> hackney_telemetry_worker:update(Metric, Value, fun replace/2).
+    FixedValue =
+        case lists:member(MetricName, [in_use_count, free_count]) of
+            true ->
+                Value + 1;
+            false ->
+                Value
+        end,
+    hackney_telemetry_worker:update(Metric, FixedValue, fun replace/2);
+update_histogram(Metric, Value) ->
+    hackney_telemetry_worker:update(Metric, Value, fun replace/2).
 
 %% @doc Update meter metric.
 %%
 %% A meter is a type of counter that only goes forward.
 %% @end
 -spec update_meter(hackney_metric(), any()) -> ok.
-update_meter(Metric, Value) -> hackney_telemetry_worker:update(Metric, Value, fun sum/2).
+update_meter(Metric, Value) ->
+    hackney_telemetry_worker:update(Metric, Value, fun sum/2).
 
 %% @doc Update gauge metric.
 %%
@@ -123,12 +118,16 @@ update_meter(Metric, Value) -> hackney_telemetry_worker:update(Metric, Value, fu
 %%
 %% @end
 -spec update_gauge(hackney_metric(), any()) -> ok.
-update_gauge(Metric, Value) -> hackney_telemetry_worker:update(Metric, Value, fun replace/2).
+update_gauge(Metric, Value) ->
+    hackney_telemetry_worker:update(Metric, Value, fun replace/2).
 
 %% Transform functions
 
-sum(StateValue, EventValue) -> StateValue + EventValue.
+sum(StateValue, EventValue) ->
+    StateValue + EventValue.
 
-replace(_StateValue, EventValue) -> EventValue.
+replace(_StateValue, EventValue) ->
+    EventValue.
 
-eval_and_replace(_StateValue, Fun) -> Fun().
+eval_and_replace(_StateValue, Fun) ->
+    Fun().
