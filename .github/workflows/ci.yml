@@ -1,21 +1,44 @@
+---
 name: CI
-
-on: push
-
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
 jobs:
   test:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2.0.0
-
-      - name: Setup Erlang
-        uses: gleam-lang/setup-erlang@v1.1.3
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.5.0
         with:
-          otp-version: "24.0"
+          access_token: ${{ github.token }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "24.2"
+          elixir-version: "1.13.4"
+
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
 
       - name: Check formatting
         run: rebar3 steamroll --check
 
-      - name: Run Tests
+      - name: Run unit tests
         run: rebar3 ct
+
+      - name: Run static code analysis checks
+        run: |
+          rebar3 dialyzer
