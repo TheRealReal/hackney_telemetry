@@ -106,6 +106,12 @@ rebar3 compile
 rebar3 ct
 ```
 
+## Docs
+
+```console
+rebar3 ex_doc
+```
+
 ## Format code
 
 To run the code formatter on OTP 25:
@@ -116,10 +122,10 @@ ERL_FLAGS="-enable-feature all" rebar3 format
 
 ## Code of Conduct
 
-This project  Contributor Covenant version 2.1. Check [CODE_OF_CONDUCT.md](/CODE_OF_CONDUCT.md) file for more information.
+This project  Contributor Covenant version 2.1. Check [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) file for more information.
 
 ## License
 
 `hackney_telemetry` source code is released under Apache License 2.0.
 
-Check [NOTICE](/NOTICE) and [LICENSE](/LICENSE) files for more information.
+Check [NOTICE](NOTICE) and [LICENSE](LICENSE) files for more information.
