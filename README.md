@@ -11,7 +11,7 @@ calls from Hackney to update metrics and generates [Telemetry](https://github.co
 
 Hackney supports storing metrics in [Folsom](https://hex.pm/packages/folsom) or
 [Exometer](https://hex.pm/packages/exometer_core). Unfortunately, these
-libraries libraries do not export data in a way that is useful for Telemetry,
+libraries do not export data in a way that is useful for Telemetry,
 so we need to transform the metrics data before reporting it.
 
 ## Telemetry metrics
