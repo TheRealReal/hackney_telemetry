@@ -13,6 +13,20 @@
 -type hackney_global_metric() :: list().
 -type hackney_host_metric() :: list().
 -type hackney_pool_metric() :: list().
--type hackney_metric() :: hackney_global_metric | hackney_host_metric | hackney_pool_metric.
+-type hackney_generic_metrics() :: nb_requests | total_requests | finished_requests.
+-type hackney_host_metrics() :: nb_requests
+                              | request_time
+                              | connect_time
+                              | response_time
+                              | connect_timeout
+                              | connect_error
+                              | new_connection
+                              | reuse_connection.
+-type hackney_pool_metrics() :: take_rate | no_socket | in_use_count | free_count | queue_count.
+
+% -type hackney_metric() :: [hackney, hackney_generic_metrics()] | [hackney, any(), hackney_host_metrics()] | [hackney_pool, atom(), hackney_pool_metrics()].
+-type hackney_metric() :: list().
 -type metric_type() :: counter | gauge | histogram | meter.
 -type transform_fun() :: fun((any(), any()) -> any()).
+-type keyword() :: {atom(), any()}.
+-type keywords() :: list(keyword()).

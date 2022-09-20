@@ -1,16 +1,14 @@
-%%%-----------------------------------------------------------------------------
 %%% @doc hackney_telemetry application supervisor.
 %%% @end
-%%%-----------------------------------------------------------------------------
 
 -module(hackney_telemetry_sup).
 
 -behaviour(supervisor).
 
-% supervisor callbacks
+% Supervisor callbacks
 -export([init/1]).
 
-% public api
+% Public API
 -export([start_link/0, start_worker/1, stop_worker/1]).
 
 -define(SERVER, ?MODULE).
@@ -29,10 +27,7 @@ init([]) ->
     ],
   {ok, {SupFlags, ChildSpecs}}.
 
-%%%=============================================================================
-%%% @doc Starts a worker for the given metric under this supervisor
-%%% @end
-%%%=============================================================================
+%%% @doc Start worker for the given metric under this supervisor.
 
 -spec start_worker(hackney_metric()) -> ok.
 start_worker(Metric) ->
@@ -40,10 +35,7 @@ start_worker(Metric) ->
   supervisor:start_child(?MODULE, ChildSpec),
   ok.
 
-%%%=============================================================================
-%%% @doc Stops the worker associated with the given metric name, if it exists.
-%%% @end
-%%%=============================================================================
+%%% @doc Stop worker associated with the given metric name if it exists.
 
 -spec stop_worker(hackney_metric()) -> ok | undefined.
 stop_worker(Metric) ->
