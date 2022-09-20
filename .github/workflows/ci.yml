@@ -22,7 +22,6 @@ jobs:
         uses: erlef/setup-beam@v1
         with:
           otp-version: "24.2"
-          elixir-version: "1.13.4"
 
       - name: Retrieve cached dependencies
         uses: actions/cache@v2
