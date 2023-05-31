@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         otp: ['24.2', '25.0']
+        rebar3: ['3.22.0']
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.5.0
@@ -25,6 +26,7 @@ jobs:
         uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
+          rebar3-version: ${{matrix.rebar3}}
 
       - name: Retrieve cached dependencies
         uses: actions/cache@v2
