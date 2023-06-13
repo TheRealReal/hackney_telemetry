@@ -3,7 +3,7 @@
   hackney_telemetry,
   [
     {description, "An adapter to export hackney metrics to telemetry"},
-    {vsn, "0.1.1"},
+    {vsn, "0.2.0"},
     {registered, []},
     {mod, {hackney_telemetry_app, []}},
     {applications, [kernel, stdlib, telemetry]},
