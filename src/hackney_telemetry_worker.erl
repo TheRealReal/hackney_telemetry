@@ -58,9 +58,7 @@ child_spec(Args) ->
 %% @doc Return name of the worker process
 
 -spec worker_name(hackney_metric()) -> {global, {atom(), hackney_metric()}}.
-worker_name([hackney, Host, Key]) when is_list(Host) ->
-    worker_name([hackney_host, Key]);
-
+worker_name([hackney, Host, Key]) when is_list(Host) -> worker_name([hackney_host, Key]);
 worker_name(Metric) -> {global, {node(), Metric}}.
 
 %% @doc Update metric
@@ -99,7 +97,6 @@ telemetry_settings(Args) ->
   Metric = proplists:get_value(metric, Args),
   case Metric of
     [hackney, MeasurementKey] -> {ok, {[hackney], MeasurementKey, #{}}};
-
     [hackney_host, MeasurementKey] -> {ok, {[hackney_host], MeasurementKey, #{}}};
 
     [hackney_pool, PoolName, MeasurementKey] ->
@@ -118,14 +115,13 @@ handle_cast({update_event, Metric, EventValue, TransformFun}, State) ->
   MetadataKey = metadata_key(Metric),
   OldValue = maps:get(MetadataKey, State#worker_state.value, 0),
   NewValue = TransformFun(OldValue, EventValue),
-
-  UpdatedState = State#worker_state{value = maps:put(MetadataKey, NewValue, State#worker_state.value)},
+  UpdatedState =
+    State#worker_state{value = maps:put(MetadataKey, NewValue, State#worker_state.value)},
   if
-    UpdatedState#worker_state.report_interval == 0 ->
-      {noreply, report(UpdatedState)};
-    true ->
-      {noreply, UpdatedState}
+    UpdatedState#worker_state.report_interval == 0 -> {noreply, report(UpdatedState)};
+    true -> {noreply, UpdatedState}
   end.
+
 
 metadata_key([hackney, Host, _]) when is_list(Host) -> #{host => Host};
 metadata_key([hackney_pool, Pool, _]) -> #{pool => Pool};
@@ -151,10 +147,13 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 -spec report(#worker_state{}) -> ok.
 report(State) ->
   {Metric, MeasurementKey, Metadata} = State#worker_state.telemetry_settings,
-  [begin
-     Measurement = #{MeasurementKey => Value},
-     telemetry:execute(Metric, Measurement, maps:merge(ExtraMetadata, Metadata))
-   end || {ExtraMetadata, Value} <- maps:to_list(State#worker_state.value)],
+  [
+    begin
+      Measurement = #{MeasurementKey => Value},
+      telemetry:execute(Metric, Measurement, maps:merge(ExtraMetadata, Metadata))
+    end
+    || {ExtraMetadata, Value} <- maps:to_list(State#worker_state.value)
+  ],
   State#worker_state{value = #{}}.
 
 %% @doc Report events to telemetry.
