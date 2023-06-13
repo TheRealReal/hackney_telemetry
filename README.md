@@ -18,22 +18,16 @@ so we need to transform the metrics data before reporting it.
 
 The following metrics are exported by this library to telemetry.
 
-| Metric                         | Tags | Meaning                                               |
-| ------------------------------ | ---- | ----------------------------------------------------- |
-| `hackney.nb_requests`          | -    | Current number of requests                            |
-| `hackney.finished_requests`    | -    | Total number of finished requests                     |
-| `hackney.total_requests`       | -    | Total number of requests                              |
-| `hackney_pool.free_count`      | pool | Number of free sockets in a connection pool           |
-| `hackney_pool.in_use_count`    | pool | Number of busy sockets in a connection pool           |
-| `hackney_pool.no_socket`       | pool | Count of new connections                              |
-| `hackney_pool.queue_count`     | pool | Number of requests waiting for a connection in a pool |
-| `hackney_pool.take_rate`       | pool | Rate at which a connection is retrieved from the pool |
-| `hackney_host.nb_requests`     | host | Number of running requests per host                   |
-| `hackney_host.request_time`    | host | Request time per host                                 |
-| `hackney_host.connect_time`    | host | Connect time per host                                 |
-| `hackney_host.response_time`   | host | Response time per host                                |
-| `hackney_host.connect_timeout` | host | Number of connect timeout per host                    |
-| `hackney_host.connect_error`   | host | Number of timeout errors per host                     |
+| Metric                      | Tags | Meaning                                               |
+| --------------------------- | ---- | ----------------------------------------------------- |
+| `hackney.nb_requests`       | -    | Current number of requests                            |
+| `hackney.finished_requests` | -    | Total number of finished requests                     |
+| `hackney.total_requests`    | -    | Total number of requests                              |
+| `hackney_pool.free_count`   | pool | Number of free sockets in a connection pool           |
+| `hackney_pool.in_use_count` | pool | Number of busy sockets in a connection pool           |
+| `hackney_pool.no_socket`    | pool | Count of new connections                              |
+| `hackney_pool.queue_count`  | pool | Number of requests waiting for a connection in a pool |
+| `hackney_pool.take_rate`    | pool | Rate at which a connection is retrieved from the pool |
 
 This module implements all the callbacks required by `hackney_metrics` but it does
 not support host metrics.
@@ -132,13 +126,7 @@ defmodule YourApplcation.Telemetry do
     last_value("hackney_pool.in_use_count", tags: [:pool]),
     last_value("hackney_pool.no_socket", tags: [:pool]),
     last_value("hackney_pool.queue_count", tags: [:pool]),
-    last_value("hackney_pool.take_rate", tags: [:pool]),
-    last_value("hackney_host.nb_requests", tags: [:host]),
-    last_value("hackney_host.request_time", tags: [:host]),
-    last_value("hackney_host.connect_time", tags: [:host]),
-    last_value("hackney_host.response_time", tags: [:host]),
-    last_value("hackney_host.connect_timeout", tags: [:host]),
-    last_value("hackney_host.connect_error", tags: [:host])
+    last_value("hackney_pool.take_rate", tags: [:pool])
   ]
   end
 end
@@ -172,7 +160,7 @@ rebar3 steamroll
 
 ## Code of Conduct
 
-This project Contributor Covenant version 2.1. Check [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) file for more information.
+This project  Contributor Covenant version 2.1. Check [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) file for more information.
 
 ## License
 
