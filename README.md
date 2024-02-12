@@ -3,6 +3,16 @@
 
 # hackney_telemetry
 
+This repository has been archived. The new upstream can be found at https://github.com/msramos/hackney_telemetry.
+
+📚 Archived Status:
+This repository is no longer actively maintained or updated. It is being preserved for historical reference or potential future use. Issues, pull requests, and contributions are no longer accepted.
+
+🙏 Thank You:
+We appreciate the contributions and engagement from the community during the active phase of this project.
+
+Thank you!
+
 Telemetry adapter for Hackney metrics.
 
 This module is a [metrics handler](https://github.com/benoitc/hackney/blob/master/README.md#metrics)
